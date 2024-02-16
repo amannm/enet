@@ -627,19 +627,6 @@ static int enet_protocol_handle_incoming_commands(ENetHost *host, ENetEvent *eve
             }
         }
     }
-    if (flags & ENET_PROTOCOL_HEADER_FLAG_COMPRESSED) {
-        size_t originalSize;
-        if (host->compressor.context == NULL || host->compressor.decompress == NULL) {
-            return 0;
-        }
-        originalSize = host->compressor.decompress(host->compressor.context, host->receivedData + headerSize, host->receivedDataLength - headerSize, host->packetData[1] + headerSize, sizeof(host->packetData[1]) - headerSize);
-        if (originalSize <= 0 || originalSize > sizeof(host->packetData[1]) - headerSize) {
-            return 0;
-        }
-        memcpy (host->packetData[1], header, headerSize);
-        host->receivedData = host->packetData[1];
-        host->receivedDataLength = headerSize + originalSize;
-    }
     if (host->checksum != NULL) {
         enet_uint32 *checksum = (enet_uint32 *) &host->receivedData[headerSize - sizeof(enet_uint32)], desiredChecksum = *checksum;
         ENetBuffer buffer;
@@ -1011,7 +998,6 @@ static int enet_protocol_send_outgoing_commands(ENetHost *host, ENetEvent *event
     enet_uint8 headerData[sizeof(ENetProtocolHeader) + sizeof(enet_uint32)];
     ENetProtocolHeader *header = (ENetProtocolHeader *) headerData;
     int sentLength = 0;
-    size_t shouldCompress = 0;
     ENetList sentUnreliableCommands;
     enet_list_clear(&sentUnreliableCommands);
     for (int sendPass = 0, continueSending = 0; sendPass <= continueSending; ++sendPass) {
@@ -1063,17 +1049,6 @@ static int enet_protocol_send_outgoing_commands(ENetHost *host, ENetEvent *event
             } else {
                 host->buffers->dataLength = (size_t) &((ENetProtocolHeader *) 0)->sentTime;
             }
-            shouldCompress = 0;
-            if (host->compressor.context != NULL && host->compressor.compress != NULL) {
-                size_t originalSize = host->packetSize - sizeof(ENetProtocolHeader), compressedSize = host->compressor.compress(host->compressor.context, &host->buffers[1], host->bufferCount - 1, originalSize, host->packetData[1], originalSize);
-                if (compressedSize > 0 && compressedSize < originalSize) {
-                    host->headerFlags |= ENET_PROTOCOL_HEADER_FLAG_COMPRESSED;
-                    shouldCompress = compressedSize;
-#ifdef ENET_DEBUG_COMPRESS
-                    printf ("peer %u: compressed %u -> %u (%u%%)\n", currentPeer -> incomingPeerID, originalSize, compressedSize, (compressedSize * 100) / originalSize);
-#endif
-                }
-            }
             if (currentPeer->outgoingPeerID < ENET_PROTOCOL_MAXIMUM_PEER_ID) {
                 host->headerFlags |= currentPeer->outgoingSessionID << ENET_PROTOCOL_HEADER_SESSION_SHIFT;
             }
@@ -1083,11 +1058,6 @@ static int enet_protocol_send_outgoing_commands(ENetHost *host, ENetEvent *event
                 *checksum = currentPeer->outgoingPeerID < ENET_PROTOCOL_MAXIMUM_PEER_ID ? currentPeer->connectID : 0;
                 host->buffers->dataLength += sizeof(enet_uint32);
                 *checksum = host->checksum(host->buffers, host->bufferCount);
-            }
-            if (shouldCompress > 0) {
-                host->buffers[1].data = host->packetData[1];
-                host->buffers[1].dataLength = shouldCompress;
-                host->bufferCount = 2;
             }
             currentPeer->lastSendTime = host->serviceTime;
             sentLength = enet_socket_send(host->socket, &currentPeer->address, host->buffers, host->bufferCount);

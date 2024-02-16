@@ -93,10 +93,6 @@ ENetHost *enet_host_create(const ENetAddress *address, size_t peerCount, size_t 
     host->duplicatePeers = ENET_PROTOCOL_MAXIMUM_PEER_ID;
     host->maximumPacketSize = ENET_HOST_DEFAULT_MAXIMUM_PACKET_SIZE;
     host->maximumWaitingData = ENET_HOST_DEFAULT_MAXIMUM_WAITING_DATA;
-    host->compressor.context = NULL;
-    host->compressor.compress = NULL;
-    host->compressor.decompress = NULL;
-    host->compressor.destroy = NULL;
     host->intercept = NULL;
     enet_list_clear(&host->dispatchQueue);
     for (currentPeer = host->peers; currentPeer < &host->peers[host->peerCount]; ++currentPeer) {
@@ -125,9 +121,6 @@ void enet_host_destroy(ENetHost *host) {
     enet_socket_destroy(host->socket);
     for (currentPeer = host->peers; currentPeer < &host->peers[host->peerCount]; ++currentPeer) {
         enet_peer_reset(currentPeer);
-    }
-    if (host->compressor.context != NULL && host->compressor.destroy) {
-        (*host->compressor.destroy)(host->compressor.context);
     }
     enet_free(host->peers);
     enet_free(host);
@@ -234,21 +227,6 @@ void enet_host_broadcast(ENetHost *host, enet_uint8 channelID, ENetPacket *packe
     }
     if (packet->referenceCount == 0) {
         enet_packet_destroy(packet);
-    }
-}
-
-/** Sets the packet compressor the host should use to compress and decompress packets.
-    @param host host to enable or disable compression for
-    @param compressor callbacks for for the packet compressor; if NULL, then compression is disabled
-*/
-void enet_host_compress(ENetHost *host, const ENetCompressor *compressor) {
-    if (host->compressor.context != NULL && host->compressor.destroy) {
-        (*host->compressor.destroy)(host->compressor.context);
-    }
-    if (compressor) {
-        host->compressor = *compressor;
-    } else {
-        host->compressor.context = NULL;
     }
 }
 

@@ -275,21 +275,6 @@ typedef struct _ENetPeer {
     enet_uint32 eventData;
     size_t totalWaitingData;
 } ENetPeer;
-/** An ENet packet compressor for compressing UDP packets before socket sends or receives.
- */
-typedef struct _ENetCompressor {
-    /** Context data for the compressor. Must be non-NULL. */
-    void *context;
-
-    /** Compresses from inBuffers[0:inBufferCount-1], containing inLimit bytes, to outData, outputting at most outLimit bytes. Should return 0 on failure. */
-    size_t (ENET_CALLBACK *compress)(void *context, const ENetBuffer *inBuffers, size_t inBufferCount, size_t inLimit, enet_uint8 *outData, size_t outLimit);
-
-    /** Decompresses from inData, containing inLimit bytes, to outData, outputting at most outLimit bytes. Should return 0 on failure. */
-    size_t (ENET_CALLBACK *decompress)(void *context, const enet_uint8 *inData, size_t inLimit, enet_uint8 *outData, size_t outLimit);
-
-    /** Destroys the context when compression is disabled or the host is destroyed. May be NULL. */
-    void (ENET_CALLBACK *destroy)(void *context);
-} ENetCompressor;
 
 /** Callback that computes the checksum of the data held in buffers[0:bufferCount-1] */
 typedef enet_uint32 (ENET_CALLBACK *ENetChecksumCallback)(const ENetBuffer *buffers, size_t bufferCount);
@@ -307,8 +292,6 @@ typedef int (ENET_CALLBACK *ENetInterceptCallback)(struct _ENetHost *host, struc
     @sa enet_host_service()
     @sa enet_host_flush()
     @sa enet_host_broadcast()
-    @sa enet_host_compress()
-    @sa enet_host_compress_with_range_coder()
     @sa enet_host_channel_limit()
     @sa enet_host_bandwidth_limit()
     @sa enet_host_bandwidth_throttle()
@@ -335,7 +318,6 @@ typedef struct _ENetHost {
     ENetBuffer buffers[ENET_BUFFER_MAXIMUM];
     size_t bufferCount;
     ENetChecksumCallback checksum;                    /**< callback the user can set to enable packet checksums for this host */
-    ENetCompressor compressor;
     enet_uint8 packetData[2][ENET_PROTOCOL_MAXIMUM_MTU];
     ENetAddress receivedAddress;
     enet_uint8 *receivedData;
@@ -534,10 +516,6 @@ ENET_API void enet_host_flush(ENetHost *);
 
 ENET_API void enet_host_broadcast(ENetHost *, enet_uint8, ENetPacket *);
 
-ENET_API void enet_host_compress(ENetHost *, const ENetCompressor *);
-
-ENET_API int enet_host_compress_with_range_coder(ENetHost *host);
-
 ENET_API void enet_host_channel_limit(ENetHost *, size_t);
 
 ENET_API void enet_host_bandwidth_limit(ENetHost *, enet_uint32, enet_uint32);
@@ -589,14 +567,6 @@ extern void enet_peer_dispatch_incoming_reliable_commands(ENetPeer *, ENetChanne
 extern void enet_peer_on_connect(ENetPeer *);
 
 extern void enet_peer_on_disconnect(ENetPeer *);
-
-ENET_API void *enet_range_coder_create(void);
-
-ENET_API void enet_range_coder_destroy(void *);
-
-ENET_API size_t enet_range_coder_compress(void *, const ENetBuffer *, size_t, size_t, enet_uint8 *, size_t);
-
-ENET_API size_t enet_range_coder_decompress(void *, const enet_uint8 *, size_t, enet_uint8 *, size_t);
 
 extern size_t enet_protocol_command_size(enet_uint8);
 

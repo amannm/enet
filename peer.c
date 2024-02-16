@@ -55,7 +55,7 @@ enet_peer_throttle_configure (ENetPeer * peer, enet_uint32 interval, enet_uint32
     command.throttleConfigure.packetThrottleAcceleration = ENET_HOST_TO_NET_32 (acceleration);
     command.throttleConfigure.packetThrottleDeceleration = ENET_HOST_TO_NET_32 (deceleration);
 
-    enet_peer_queue_outgoing_command (peer, & command, NULL, 0);
+    enet_peer_queue_outgoing_command (peer, & command, NULL);
 }
 
 int
@@ -135,7 +135,7 @@ enet_peer_send (ENetPeer * peer, enet_uint8 channelID, ENetPacket * packet)
       command.sendUnreliable.dataLength = ENET_HOST_TO_NET_16 (packet -> dataLength);
    }
 
-   if (enet_peer_queue_outgoing_command (peer, & command, packet, packet -> dataLength) == NULL)
+   if (enet_peer_queue_outgoing_command (peer, & command, packet) == NULL)
      return -1;
 
    return 0;
@@ -373,7 +373,7 @@ enet_peer_ping (ENetPeer * peer)
     command.header.command = ENET_PROTOCOL_COMMAND_PING | ENET_PROTOCOL_COMMAND_FLAG_ACKNOWLEDGE;
     command.header.channelID = 0xFF;
    
-    enet_peer_queue_outgoing_command (peer, & command, NULL, 0);
+    enet_peer_queue_outgoing_command (peer, & command, NULL);
 }
 
 /** Sets the interval at which pings will be sent to a peer. 
@@ -440,7 +440,7 @@ enet_peer_disconnect_now (ENetPeer * peer, enet_uint32 data)
         command.header.channelID = 0xFF;
         command.disconnect.data = ENET_HOST_TO_NET_32 (data);
 
-        enet_peer_queue_outgoing_command (peer, & command, NULL, 0);
+        enet_peer_queue_outgoing_command (peer, & command, NULL);
 
         enet_host_flush (peer -> host);
     }
@@ -476,7 +476,7 @@ enet_peer_disconnect (ENetPeer * peer, enet_uint32 data)
     else
       command.header.command |= ENET_PROTOCOL_COMMAND_FLAG_UNSEQUENCED;      
     
-    enet_peer_queue_outgoing_command (peer, & command, NULL, 0);
+    enet_peer_queue_outgoing_command (peer, & command, NULL);
 
     if (peer -> state == ENET_PEER_STATE_CONNECTED || peer -> state == ENET_PEER_STATE_DISCONNECT_LATER)
     {
@@ -622,18 +622,21 @@ enet_peer_setup_outgoing_command (ENetPeer * peer, ENetOutgoingCommand * outgoin
 }
 
 ENetOutgoingCommand *
-enet_peer_queue_outgoing_command (ENetPeer * peer, const ENetProtocol * command, ENetPacket * packet, enet_uint16 length)
+enet_peer_queue_outgoing_command (ENetPeer * peer, const ENetProtocol * command, ENetPacket * packet)
 {
     ENetOutgoingCommand * outgoingCommand = (ENetOutgoingCommand *) enet_malloc (sizeof (ENetOutgoingCommand));
     if (outgoingCommand == NULL)
       return NULL;
 
     outgoingCommand -> command = * command;
-    outgoingCommand -> fragmentLength = length;
     outgoingCommand -> packet = packet;
     if (packet != NULL)
-      ++ packet -> referenceCount;
-
+    {
+        ++packet->referenceCount;
+        outgoingCommand -> fragmentLength = packet->dataLength;
+    } else {
+        outgoingCommand -> fragmentLength = 0;
+    }
     enet_peer_setup_outgoing_command (peer, outgoingCommand);
 
     return outgoingCommand;

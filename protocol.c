@@ -436,7 +436,7 @@ enet_protocol_handle_connect (ENetHost * host, ENetProtocolHeader * header, ENet
     verifyCommand.verifyConnect.packetThrottleDeceleration = ENET_HOST_TO_NET_32 (peer -> packetThrottleDeceleration);
     verifyCommand.verifyConnect.connectID = peer -> connectID;
 
-    enet_peer_queue_outgoing_command (peer, & verifyCommand, NULL, 0);
+    enet_peer_queue_outgoing_command (peer, & verifyCommand, NULL);
 
     return peer;
 }

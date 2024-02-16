@@ -258,7 +258,7 @@ enet_host_connect (ENetHost * host, const ENetAddress * address, size_t channelC
     command.connect.connectID = currentPeer -> connectID;
     command.connect.data = ENET_HOST_TO_NET_32 (data);
  
-    enet_peer_queue_outgoing_command (currentPeer, & command, NULL, 0, 0);
+    enet_peer_queue_outgoing_command (currentPeer, & command, NULL, 0);
 
     return currentPeer;
 }
@@ -495,7 +495,7 @@ enet_host_bandwidth_throttle (ENetHost * host)
            else
              command.bandwidthLimit.incomingBandwidth = ENET_HOST_TO_NET_32 (bandwidthLimit);
 
-           enet_peer_queue_outgoing_command (peer, & command, NULL, 0, 0);
+           enet_peer_queue_outgoing_command (peer, & command, NULL, 0);
        } 
     }
 }

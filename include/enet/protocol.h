@@ -17,7 +17,6 @@ enum
    ENET_PROTOCOL_MINIMUM_CHANNEL_COUNT   = 1,
    ENET_PROTOCOL_MAXIMUM_CHANNEL_COUNT   = 255,
    ENET_PROTOCOL_MAXIMUM_PEER_ID         = 0xFFF,
-   ENET_PROTOCOL_MAXIMUM_FRAGMENT_COUNT  = 1024 * 1024
 };
 
 typedef enum _ENetProtocolCommand
@@ -30,12 +29,10 @@ typedef enum _ENetProtocolCommand
    ENET_PROTOCOL_COMMAND_PING               = 5,
    ENET_PROTOCOL_COMMAND_SEND_RELIABLE      = 6,
    ENET_PROTOCOL_COMMAND_SEND_UNRELIABLE    = 7,
-   ENET_PROTOCOL_COMMAND_SEND_FRAGMENT      = 8,
    ENET_PROTOCOL_COMMAND_SEND_UNSEQUENCED   = 9,
    ENET_PROTOCOL_COMMAND_BANDWIDTH_LIMIT    = 10,
    ENET_PROTOCOL_COMMAND_THROTTLE_CONFIGURE = 11,
-   ENET_PROTOCOL_COMMAND_SEND_UNRELIABLE_FRAGMENT = 12,
-   ENET_PROTOCOL_COMMAND_COUNT              = 13,
+   ENET_PROTOCOL_COMMAND_COUNT              = 11,
 
    ENET_PROTOCOL_COMMAND_MASK               = 0x0F
 } ENetProtocolCommand;
@@ -163,17 +160,6 @@ typedef struct _ENetProtocolSendUnsequenced
    enet_uint16 dataLength;
 } ENET_PACKED ENetProtocolSendUnsequenced;
 
-typedef struct _ENetProtocolSendFragment
-{
-   ENetProtocolCommandHeader header;
-   enet_uint16 startSequenceNumber;
-   enet_uint16 dataLength;
-   enet_uint32 fragmentCount;
-   enet_uint32 fragmentNumber;
-   enet_uint32 totalLength;
-   enet_uint32 fragmentOffset;
-} ENET_PACKED ENetProtocolSendFragment;
-
 typedef union _ENetProtocol
 {
    ENetProtocolCommandHeader header;
@@ -185,7 +171,6 @@ typedef union _ENetProtocol
    ENetProtocolSendReliable sendReliable;
    ENetProtocolSendUnreliable sendUnreliable;
    ENetProtocolSendUnsequenced sendUnsequenced;
-   ENetProtocolSendFragment sendFragment;
    ENetProtocolBandwidthLimit bandwidthLimit;
    ENetProtocolThrottleConfigure throttleConfigure;
 } ENET_PACKED ENetProtocol;

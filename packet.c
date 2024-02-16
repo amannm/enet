@@ -18,18 +18,18 @@
     @param flags        flags for this packet as described for the ENetPacket structure.
     @returns the packet on success, NULL on failure
 */
-ENetPacket *enet_packet_create(const void *data, size_t dataLength, enet_uint32 flags) {
-    ENetPacket *packet = (ENetPacket *) enet_malloc(sizeof(ENetPacket));
+ENetPacket* enet_packet_create(const void* data, size_t dataLength, enet_uint32 flags) {
+    ENetPacket* packet = (ENetPacket*) enet_malloc(sizeof(ENetPacket));
     if (packet == NULL) {
         return NULL;
     }
     if (flags & ENET_PACKET_FLAG_NO_ALLOCATE) {
-        packet->data = (enet_uint8 *) data;
+        packet->data = (enet_uint8*) data;
     } else {
         if (dataLength <= 0) {
             packet->data = NULL;
         } else {
-            packet->data = (enet_uint8 *) enet_malloc(dataLength);
+            packet->data = (enet_uint8*) enet_malloc(dataLength);
             if (packet->data == NULL) {
                 enet_free(packet);
                 return NULL;
@@ -49,7 +49,7 @@ ENetPacket *enet_packet_create(const void *data, size_t dataLength, enet_uint32 
 /** Destroys the packet and deallocates its data.
     @param packet packet to be destroyed
 */
-void enet_packet_destroy(ENetPacket *packet) {
+void enet_packet_destroy(ENetPacket* packet) {
     if (packet == NULL) {
         return;
     }
@@ -68,13 +68,13 @@ void enet_packet_destroy(ENetPacket *packet) {
     @param dataLength new size for the packet data
     @returns 0 on success, < 0 on failure
 */
-int enet_packet_resize(ENetPacket *packet, size_t dataLength) {
-    enet_uint8 *newData;
+int enet_packet_resize(ENetPacket* packet, size_t dataLength) {
+    enet_uint8* newData;
     if (dataLength <= packet->dataLength || (packet->flags & ENET_PACKET_FLAG_NO_ALLOCATE)) {
         packet->dataLength = dataLength;
         return 0;
     }
-    newData = (enet_uint8 *) enet_malloc(dataLength);
+    newData = (enet_uint8*) enet_malloc(dataLength);
     if (newData == NULL) {
         return -1;
     }
@@ -342,10 +342,10 @@ static const enet_uint32 crcTable[256] = {0,
                                           0x5A05DF1B,
                                           0x2D02EF8D};
 
-enet_uint32 enet_crc32(const ENetBuffer *buffers, size_t bufferCount) {
+enet_uint32 enet_crc32(const ENetBuffer* buffers, size_t bufferCount) {
     enet_uint32 crc = 0xFFFFFFFF;
     while (bufferCount-- > 0) {
-        const enet_uint8 *data = (const enet_uint8 *) buffers->data, *dataEnd = &data[buffers->dataLength];
+        const enet_uint8* data = (const enet_uint8*) buffers->data, * dataEnd = &data[buffers->dataLength];
         while (data < dataEnd) {
             crc = (crc >> 8) ^ crcTable[(crc & 0xFF) ^ *data++];
         }

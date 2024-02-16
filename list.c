@@ -11,12 +11,12 @@
     @ingroup private
     @{
 */
-void enet_list_clear(ENetList *list) {
+void enet_list_clear(ENetList* list) {
     list->sentinel.next = &list->sentinel;
     list->sentinel.previous = &list->sentinel;
 }
 
-ENetListIterator enet_list_insert(ENetListIterator position, void *data) {
+ENetListIterator enet_list_insert(ENetListIterator position, void* data) {
     ENetListIterator result = (ENetListIterator) data;
     result->previous = position->previous;
     result->next = position;
@@ -25,13 +25,13 @@ ENetListIterator enet_list_insert(ENetListIterator position, void *data) {
     return result;
 }
 
-void *enet_list_remove(ENetListIterator position) {
+void* enet_list_remove(ENetListIterator position) {
     position->previous->next = position->next;
     position->next->previous = position->previous;
     return position;
 }
 
-ENetListIterator enet_list_move(ENetListIterator position, void *dataFirst, void *dataLast) {
+ENetListIterator enet_list_move(ENetListIterator position, void* dataFirst, void* dataLast) {
     ENetListIterator first = (ENetListIterator) dataFirst, last = (ENetListIterator) dataLast;
     first->previous->next = last->next;
     last->next->previous = first->previous;
@@ -42,7 +42,7 @@ ENetListIterator enet_list_move(ENetListIterator position, void *dataFirst, void
     return first;
 }
 
-size_t enet_list_size(ENetList *list) {
+size_t enet_list_size(ENetList* list) {
     size_t size = 0;
     ENetListIterator position;
     for (position = enet_list_begin (list); position != enet_list_end (list); position = enet_list_next (position)) {

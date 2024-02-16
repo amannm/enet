@@ -26,7 +26,7 @@ typedef SOCKET ENetSocket;
 #define ENET_NET_TO_HOST_32(value) (ntohl (value))
 typedef struct {
     size_t dataLength;
-    void *data;
+    void* data;
 } ENetBuffer;
 #define ENET_CALLBACK __cdecl
 #ifdef ENET_DLL

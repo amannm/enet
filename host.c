@@ -26,18 +26,18 @@
     the window size of a connection which limits the amount of reliable packets that may be in transit
     at any given time.
 */
-ENetHost *enet_host_create(const ENetAddress *address, size_t peerCount, size_t channelLimit, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
-    ENetHost *host;
-    ENetPeer *currentPeer;
+ENetHost* enet_host_create(const ENetAddress* address, size_t peerCount, size_t channelLimit, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
+    ENetHost* host;
+    ENetPeer* currentPeer;
     if (peerCount > ENET_PROTOCOL_MAXIMUM_PEER_ID) {
         return NULL;
     }
-    host = (ENetHost *) enet_malloc(sizeof(ENetHost));
+    host = (ENetHost*) enet_malloc(sizeof(ENetHost));
     if (host == NULL) {
         return NULL;
     }
     memset (host, 0, sizeof(ENetHost));
-    host->peers = (ENetPeer *) enet_malloc(peerCount * sizeof(ENetPeer));
+    host->peers = (ENetPeer*) enet_malloc(peerCount * sizeof(ENetPeer));
     if (host->peers == NULL) {
         enet_free(host);
         return NULL;
@@ -113,8 +113,8 @@ ENetHost *enet_host_create(const ENetAddress *address, size_t peerCount, size_t 
 /** Destroys the host and all resources associated with it.
     @param host pointer to the host to destroy
 */
-void enet_host_destroy(ENetHost *host) {
-    ENetPeer *currentPeer;
+void enet_host_destroy(ENetHost* host) {
+    ENetPeer* currentPeer;
     if (host == NULL) {
         return;
     }
@@ -126,7 +126,7 @@ void enet_host_destroy(ENetHost *host) {
     enet_free(host);
 }
 
-enet_uint32 enet_host_random(ENetHost *host) {
+enet_uint32 enet_host_random(ENetHost* host) {
     /* Mulberry32 by Tommy Ettinger */
     enet_uint32 n = (host->randomSeed += 0x6D2B79F5U);
     n = (n ^ (n >> 15)) * (n | 1U);
@@ -143,9 +143,9 @@ enet_uint32 enet_host_random(ENetHost *host) {
     @remarks The peer returned will have not completed the connection until enet_host_service()
     notifies of an ENET_EVENT_TYPE_CONNECT event for the peer.
 */
-ENetPeer *enet_host_connect(ENetHost *host, const ENetAddress *address, size_t channelCount, enet_uint32 data) {
-    ENetPeer *currentPeer;
-    ENetChannel *channel;
+ENetPeer* enet_host_connect(ENetHost* host, const ENetAddress* address, size_t channelCount, enet_uint32 data) {
+    ENetPeer* currentPeer;
+    ENetChannel* channel;
     ENetProtocol command;
     if (channelCount < ENET_PROTOCOL_MINIMUM_CHANNEL_COUNT) {
         channelCount = ENET_PROTOCOL_MINIMUM_CHANNEL_COUNT;
@@ -162,7 +162,7 @@ ENetPeer *enet_host_connect(ENetHost *host, const ENetAddress *address, size_t c
     if (currentPeer >= &host->peers[host->peerCount]) {
         return NULL;
     }
-    currentPeer->channels = (ENetChannel *) enet_malloc(channelCount * sizeof(ENetChannel));
+    currentPeer->channels = (ENetChannel*) enet_malloc(channelCount * sizeof(ENetChannel));
     if (currentPeer->channels == NULL) {
         return NULL;
     }
@@ -217,8 +217,8 @@ ENetPeer *enet_host_connect(ENetHost *host, const ENetAddress *address, size_t c
     @param channelID channel on which to broadcast
     @param packet packet to broadcast
 */
-void enet_host_broadcast(ENetHost *host, enet_uint8 channelID, ENetPacket *packet) {
-    ENetPeer *currentPeer;
+void enet_host_broadcast(ENetHost* host, enet_uint8 channelID, ENetPacket* packet) {
+    ENetPeer* currentPeer;
     for (currentPeer = host->peers; currentPeer < &host->peers[host->peerCount]; ++currentPeer) {
         if (currentPeer->state != ENET_PEER_STATE_CONNECTED) {
             continue;
@@ -234,7 +234,7 @@ void enet_host_broadcast(ENetHost *host, enet_uint8 channelID, ENetPacket *packe
     @param host host to limit
     @param channelLimit the maximum number of channels allowed; if 0, then this is equivalent to ENET_PROTOCOL_MAXIMUM_CHANNEL_COUNT
 */
-void enet_host_channel_limit(ENetHost *host, size_t channelLimit) {
+void enet_host_channel_limit(ENetHost* host, size_t channelLimit) {
     if (!channelLimit || channelLimit > ENET_PROTOCOL_MAXIMUM_CHANNEL_COUNT) {
         channelLimit = ENET_PROTOCOL_MAXIMUM_CHANNEL_COUNT;
     } else {
@@ -252,16 +252,16 @@ void enet_host_channel_limit(ENetHost *host, size_t channelLimit) {
     @remarks the incoming and outgoing bandwidth parameters are identical in function to those
     specified in enet_host_create().
 */
-void enet_host_bandwidth_limit(ENetHost *host, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
+void enet_host_bandwidth_limit(ENetHost* host, enet_uint32 incomingBandwidth, enet_uint32 outgoingBandwidth) {
     host->incomingBandwidth = incomingBandwidth;
     host->outgoingBandwidth = outgoingBandwidth;
     host->recalculateBandwidthLimits = 1;
 }
 
-void enet_host_bandwidth_throttle(ENetHost *host) {
+void enet_host_bandwidth_throttle(ENetHost* host) {
     enet_uint32 timeCurrent = enet_time_get(), elapsedTime = timeCurrent - host->bandwidthThrottleEpoch, peersRemaining = (enet_uint32) host->connectedPeers, dataTotal = ~0, bandwidth = ~0, throttle = 0, bandwidthLimit = 0;
     int needsAdjustment = host->bandwidthLimitedPeers > 0 ? 1 : 0;
-    ENetPeer *peer;
+    ENetPeer* peer;
     ENetProtocol command;
     if (elapsedTime < ENET_HOST_BANDWIDTH_THROTTLE_INTERVAL) {
         return;
